@@ -26,7 +26,7 @@ class Recipe(models.Model):
     )
     ingredients = models.ManyToManyField(
         'Ingredient',
-        through='IngredientsAmount',
+        through='IngredientAmount',
         related_name='recipes',
         verbose_name='Ингредиенты'
     )
@@ -41,7 +41,7 @@ class Recipe(models.Model):
         verbose_name='Время приготовления'
     )
     pub_date = models.DateTimeField(
-        auto_created=True,
+        auto_now_add=True,
         verbose_name='Дата публикации'
     )
 
@@ -61,6 +61,7 @@ class Tag(models.Model):
         verbose_name='Название тега'
     )
     color = models.CharField(
+        max_length=7,
         unique=True,
         validators=[
             validators.RegexValidator(
@@ -69,7 +70,7 @@ class Tag(models.Model):
             )
         ]
     )
-    slag = models.SlugField(
+    slug = models.SlugField(
         max_length=200,
         unique=True,
         verbose_name='Уникальный слаг'
@@ -132,7 +133,7 @@ class IngredientAmount(models.Model):
     class Meta:
         verbose_name = 'Количество ингредиента'
         verbose_name_plural = 'Количество ингредиентов'
-        ordering = ['name']
+        ordering = ['id']
         constraints = [
             models.UniqueConstraint(
                 fields=['recipe', 'ingredient'],
