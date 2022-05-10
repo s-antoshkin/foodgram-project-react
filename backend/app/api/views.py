@@ -38,7 +38,10 @@ class FollowViewSet(UserViewSet):
     pagination_class = LimitPageNumberPagination
 
     @action(
-        methods=['post'], detail=True, permission_classes=[IsAuthenticated])
+        methods=['post'],
+        detail=True,
+        permission_classes=[IsAuthenticated]
+    )
     def subscribe(self, request, id=None):
         user = request.user
         author = get_object_or_404(User, id=id)
