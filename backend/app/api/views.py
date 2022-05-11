@@ -3,6 +3,9 @@ from django.db.models import BooleanField, Exists, OuterRef, Value
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
 from djoser.views import UserViewSet
+from reportlab.pdfbase import pdfmetrics
+from reportlab.pdfbase.ttfonts import TTFont
+from reportlab.pdfgen import canvas
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
 from rest_framework.permissions import SAFE_METHODS, IsAuthenticated
@@ -170,23 +173,32 @@ class RecipeViewSet(viewsets.ModelViewSet):
         for num in shopping_cart:
             ingredients_queryset = num.recipe.ingredient.all()
             for ingredient in ingredients_queryset:
-                name = ingredient.ingredients.name
+                name = ingredient.ingredient.name
                 amount = ingredient.amount
-                measurement_unit = ingredient.ingredients.measurement_unit
+                measurement_unit = ingredient.ingredient.measurement_unit
                 if name not in shopping_dict:
                     shopping_dict[name] = {
                         'measurement_unit': measurement_unit,
                         'amount': amount}
                 else:
                     shopping_dict[name]['amount'] = (
-                        shopping_dict[name]['amount'] + amount)
+                        shopping_dict[name]['amount'] + amount
+                    )
 
-        shopping_list = []
-        for index, key in enumerate(shopping_dict, start=1):
-            shopping_list.append(
-                f'{index}. {key} - {shopping_dict[key]["amount"]} '
-                f'{shopping_dict[key]["measurement_unit"]}\n')
-        filename = 'shopping_cart.txt'
-        response = HttpResponse(shopping_list, content_type='text/plain')
-        response['Content-Disposition'] = f'attachment; filename={filename}'
+        pdfmetrics.registerFont(
+            TTFont('Slimamif', 'Slimamif.ttf', 'UTF-8'))
+        response = HttpResponse(content_type='application/pdf')
+        response['Content-Disposition'] = ('attachment; '
+                                           'filename="shopping_list.pdf"')
+        page = canvas.Canvas(response)
+        page.setFont('Slimamif', size=24)
+        page.drawString(200, 800, 'Список ингредиентов')
+        page.setFont('Slimamif', size=16)
+        height = 750
+        for i, (name, data) in enumerate(shopping_dict.items(), 1):
+            page.drawString(75, height, (f'<{i}> {name} - {data["amount"]}, '
+                                         f'{data["measurement_unit"]}'))
+            height -= 25
+        page.showPage()
+        page.save()
         return response
