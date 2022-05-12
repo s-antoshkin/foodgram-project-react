@@ -32,7 +32,7 @@ class CustomUserCreateSerializer(UserCreateSerializer):
 
     class Meta:
         model = User
-        fields = ('__all__',)
+        exclude = ()
 
 
 class CustomUserSerializer(UserSerializer):
