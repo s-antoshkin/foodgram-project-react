@@ -123,7 +123,7 @@ docker-compose exec backend python manage.py collectstatic --no-input
 ```
 #### При необходимости возможно импортировать тестовые данные:
 ```sh
-docker-compose exec backend python manage.py loaddata fixtures.json
+docker-compose exec backend python manage.py loaddata data/fixtures.json
 ```
 - При импорте создается суперюзер `admin` с паролем `foodgramadmin`
 
