@@ -7,7 +7,7 @@ load_dotenv()
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-SECRET_KEY = 'django-insecure-wp1pehjv32(tz@5@7i$7#f880-o#%vhh$bdr305fo-(h80#=%%'
+SECRET_KEY = os.getenv('SECRET_KEY', default="secret_key")
 
 DEBUG = True
 

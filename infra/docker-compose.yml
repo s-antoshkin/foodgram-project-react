@@ -8,10 +8,7 @@ services:
       - ./.env
 
   backend:
-#    image: antoshkin/foodgram_backend:latest
-    build:
-      context: ../backend
-      dockerfile: Dockerfile
+    image: antoshkin/foodgram_backend:latest
     restart: always
     volumes:
       - static_value:/app/static/
@@ -22,10 +19,7 @@ services:
       - ./.env
 
   frontend:
-#    image: antoshkin/foodgram_frontend:latest
-    build:
-      context: ../frontend
-      dockerfile: Dockerfile
+    image: antoshkin/foodgram_frontend:latest
     volumes:
       - ../frontend/:/app/result_build/
     depends_on:

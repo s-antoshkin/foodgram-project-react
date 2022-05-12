@@ -1,4 +1,3 @@
-from django.contrib.auth import get_user_model
 from django.db.models import BooleanField, Exists, OuterRef, Value
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
@@ -11,7 +10,7 @@ from rest_framework.decorators import action
 from rest_framework.permissions import SAFE_METHODS, IsAuthenticated
 from rest_framework.response import Response
 
-from .models import Cart, Favorite, Ingredient, Recipe, Tag
+from .models import Cart, Favorite, Ingredient, Recipe, Tag, User
 from .filters import IngredientSearchFilter, TagFavoriteCartFilter
 from .pagination import LimitPageNumberPagination
 from .permissions import AdminOrReadOnly, AdminUserOrReadOnly
@@ -19,8 +18,6 @@ from .serializers import (FollowSerializer, IngredientSerializer,
                           RecipeReadSerializer, RecipeWriteSerializer,
                           ShortRecipeSerializer, TagSerializer)
 from users.models import Follow
-
-User = get_user_model()
 
 
 class TagsViewSet(viewsets.ReadOnlyModelViewSet):
@@ -46,19 +43,17 @@ class FollowViewSet(UserViewSet):
         permission_classes=[IsAuthenticated]
     )
     def subscribe(self, request, id=None):
-        user = request.user
         author = get_object_or_404(User, id=id)
-
-        if user == author:
+        if request.user == author:
             return Response({
                 'errors': 'Ошибка подписки, нельзя подписываться на себя'
             }, status=status.HTTP_400_BAD_REQUEST)
-        if Follow.objects.filter(user=user, author=author).exists():
+        if Follow.objects.filter(user=request.user, author=author).exists():
             return Response({
                 'errors': 'Ошибка подписки, вы уже подписаны на пользователя'
             }, status=status.HTTP_400_BAD_REQUEST)
 
-        follow = Follow.objects.create(user=user, author=author)
+        follow = Follow.objects.create(user=request.user, author=author)
         serializer = FollowSerializer(
             follow, context={'request': request}
         )
@@ -66,13 +61,12 @@ class FollowViewSet(UserViewSet):
 
     @subscribe.mapping.delete
     def del_subscribe(self, request, id=None):
-        user = request.user
         author = get_object_or_404(User, id=id)
-        if user == author:
+        if request.user == author:
             return Response({
                 'errors': 'Ошибка отписки, нельзя отписываться от самого себя'
             }, status=status.HTTP_400_BAD_REQUEST)
-        follow = Follow.objects.filter(user=user, author=author)
+        follow = Follow.objects.filter(user=request.user, author=author)
         if not follow.exists():
             return Response({
                 'errors': 'Ошибка отписки, вы уже отписались'
@@ -82,8 +76,7 @@ class FollowViewSet(UserViewSet):
 
     @action(detail=False, permission_classes=[IsAuthenticated])
     def subscriptions(self, request):
-        user = request.user
-        queryset = Follow.objects.filter(user=user)
+        queryset = Follow.objects.filter(user=request.user)
         pages = self.paginate_queryset(queryset)
         serializer = FollowSerializer(
             pages,
@@ -108,16 +101,15 @@ class RecipeViewSet(viewsets.ModelViewSet):
         serializer.save(author=self.request.user)
 
     def get_queryset(self):
-        user = self.request.user
         queryset = Recipe.objects.all()
 
-        if user.is_authenticated:
+        if self.request.user.is_authenticated:
             queryset = queryset.annotate(
                 is_favorited=Exists(Favorite.objects.filter(
-                    user=user, recipe__pk=OuterRef('pk'))
+                    user=self.request.user, recipe__pk=OuterRef('pk'))
                 ),
                 is_in_shopping_cart=Exists(Cart.objects.filter(
-                    user=user, recipe__pk=OuterRef('pk'))
+                    user=self.request.user, recipe__pk=OuterRef('pk'))
                 )
             )
         else:

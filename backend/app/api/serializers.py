@@ -1,14 +1,11 @@
-from django.contrib.auth import get_user_model
 from django.db.models import F
 from djoser.serializers import UserCreateSerializer, UserSerializer
 from drf_extra_fields.fields import Base64ImageField
 from rest_framework import serializers
 from rest_framework.validators import UniqueValidator
 
-from .models import Ingredient, IngredientAmount, Recipe, Tag
+from .models import Ingredient, IngredientAmount, Recipe, Tag, User
 from users.models import Follow
-
-User = get_user_model()
 
 
 class TagSerializer(serializers.ModelSerializer):
@@ -35,14 +32,7 @@ class CustomUserCreateSerializer(UserCreateSerializer):
 
     class Meta:
         model = User
-        fields = (
-            'id',
-            'email',
-            'password',
-            'username',
-            'first_name',
-            'last_name'
-        )
+        fields = ('__all__',)
 
 
 class CustomUserSerializer(UserSerializer):
@@ -50,14 +40,7 @@ class CustomUserSerializer(UserSerializer):
 
     class Meta:
         model = User
-        fields = (
-            'id',
-            'email',
-            'username',
-            'first_name',
-            'last_name',
-            'is_subscribed'
-        )
+        exclude = ()
         read_only_fields = 'is_subscribed',
 
     def get_is_subscribed(self, obj):
@@ -76,18 +59,7 @@ class RecipeReadSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Recipe
-        fields = (
-            'id',
-            'tags',
-            'author',
-            'ingredients',
-            'is_favorite',
-            'is_in_shopping_cart',
-            'name',
-            'image',
-            'text',
-            'cooking_time',
-        )
+        exclude = ('pub_date',)
 
     def get_ingredients(self, obj):
         return obj.ingredients.values(
@@ -102,14 +74,7 @@ class RecipeWriteSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Recipe
-        fields = (
-            'tags',
-            'ingredients',
-            'name',
-            'image',
-            'text',
-            'cooking_time',
-        )
+        exclude = ('pub_date',)
 
     def get_ingredients(self, obj):
         return obj.ingredients.values(
