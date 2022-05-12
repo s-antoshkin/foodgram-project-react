@@ -9,9 +9,6 @@ services:
 
   backend:
     image: antoshkin/foodgram_backend:latest
-#    build:
-#      context: ../backend
-#      dockerfile: Dockerfile
     restart: always
     volumes:
       - static_value:/app/static/

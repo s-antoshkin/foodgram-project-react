@@ -8,7 +8,7 @@ from .models import Recipe
 
 class TagFavoriteCartFilter(filters.FilterSet):
     is_in_shopping_cart = filters.BooleanFilter(widget=BooleanWidget())
-    is_favorite = filters.BooleanFilter(widget=BooleanWidget())
+    is_favorited = filters.BooleanFilter(widget=BooleanWidget())
     tags = AllValuesMultipleFilter(field_name="tags__slug")
     author = AllValuesMultipleFilter(field_name="author__id")
 
@@ -17,7 +17,7 @@ class TagFavoriteCartFilter(filters.FilterSet):
         fields = [
             "author__id",
             "tags__slug",
-            "is_favorite",
+            "is_favorited",
             "is_in_shopping_cart"
         ]
 
